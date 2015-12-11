@@ -1,0 +1,25 @@
+{
+  "name": "clientside-router",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emflores/clientside-router.git"
+  },
+  "author": "Michael Flores <flores.michael@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/emflores/clientside-router/issues"
+  },
+  "homepage": "https://github.com/emflores/clientside-router#readme",
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "gulp": "^3.9.0",
+    "gulp-mocha": "^2.2.0",
+    "mocha": "^2.3.4"
+  }
+}
