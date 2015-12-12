@@ -34,7 +34,7 @@ Router.prototype.navigateByPath = function(path) {
     return;
   }
 
-  return this.pushState(path);
+  return this.pushState(path, route);
 };
 
 Router.prototype.getRouteByName = function(name) {
@@ -65,21 +65,23 @@ Router.prototype.navigateByName = function(name, opts) {
   }
 
   var path = util.makePath(route.tokens, opts);
-  return this.pushState(path);
+  return this.pushState(path, route);
 };
 
-Router.prototype.pushState = function(path) {
+Router.prototype.pushState = function(path, route) {
   win.history.pushState({}, '', path);
+  route.cb(util.makePathArgs(path, route.tokens));
 };
 
 Router.prototype.addListeners = function() {
   var self = this;
 
   win.addEventListener('popstate', function() {
-    var route = self.getRouteByPath(win.location.pathname);
+    var path = win.location.pathname;
+    var route = self.getRouteByPath(path);
 
     if (route) {
-      route.cb();
+      route.cb(util.makePathArgs(path, route.tokens));
     }
   });
 
@@ -96,7 +98,7 @@ Router.prototype.addListeners = function() {
 
     if (route) {
       e.preventDefault();
-      route.cb();
+      self.pushState(path, route);
     }
   });
 };
@@ -106,10 +108,11 @@ Router.prototype.startHistory = function() {
     return;
   }
 
-  var route = this.getRouteByPath(win.location.pathname);
+  var path = win.location.pathname;
+  var route = this.getRouteByPath(path);
 
   if (route) {
-    route.cb();
+    route.cb(util.makePathArgs(path, route.tokens));
   }
 
   this.addListeners();
