@@ -1,10 +1,10 @@
-const PATH_DELIM = '/';
-const INTERPOLATION_PATTERN = /<(.+)>/;
+var PATH_DELIM = '/';
+var INTERPOLATION_PATTERN = /<(.+)>/;
 
 
 function parse(segment) {
-  const matches = segment.match(INTERPOLATION_PATTERN);
-  const isLiteral = !matches;
+  var matches = segment.match(INTERPOLATION_PATTERN);
+  var isLiteral = !matches;
 
   return {
     isLiteral: isLiteral,
@@ -13,12 +13,12 @@ function parse(segment) {
 }
 
 function tokenize(path) {
-  const segments = path.split(PATH_DELIM);
+  var segments = path.split(PATH_DELIM);
   return segments.map(parse);
 }
 
 function makePath(tokens, opts) {
-  const segments = tokens.map(function(token) {
+  var segments = tokens.map(function(token) {
     if (token.isLiteral) {
       return token.value;
     }
@@ -29,7 +29,7 @@ function makePath(tokens, opts) {
 }
 
 function doesMatchPath(tokens, requestedPath) {
-  const segments = requestedPath.split(PATH_DELIM);
+  var segments = requestedPath.split(PATH_DELIM);
 
   if (tokens.length !== segments.length) {
     return false;

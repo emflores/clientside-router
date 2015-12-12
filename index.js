@@ -1,6 +1,6 @@
 "use strict";
 
-const util = require('./util');
+var util = require('./util');
 
 function Router(routes) {
   this.routes = [];
@@ -21,7 +21,7 @@ Router.prototype.addRoute = function(opts) {
 };
 
 Router.prototype.navigateByPath = function(path) {
-  const route = util.find(this.routes, function(route) {
+  var route = util.find(this.routes, function(route) {
     return util.doesMatchPath(route.tokens, path);
   });
 
@@ -32,18 +32,34 @@ Router.prototype.navigateByPath = function(path) {
   return this.pushState(path, route.cb);
 };
 
-Router.prototype.navigateByName = function(name, opts) {
-  opts = opts || {};
-
-  const route = util.find(this.routes, function(route) {
+Router.prototype.getRouteByName = function(name) {
+  return util.find(this.routes, function(route) {
     return route.name === name;
   });
+};
+
+Router.prototype.getPath = function(name, opts) {
+  opts = opts || {};
+
+  var route = this.getRouteByName(name);
 
   if (!route) {
     return;
   }
 
-  const path = util.makePath(route.tokens, opts);
+  return util.makePath(route.tokens, opts);
+};
+
+Router.prototype.navigateByName = function(name, opts) {
+  opts = opts || {};
+
+  var route = this.getRouteByName(name);
+
+  if (!route) {
+    return;
+  }
+
+  var path = util.makePath(route.tokens, opts);
   return this.pushState(path, route.cb);
 };
 

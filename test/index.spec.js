@@ -1,6 +1,6 @@
 "use strict";
 
-/*jshint expr: true*/
+/*jshint expr: true, mocha: true, esnext: true */
 
 const expect = require('chai').expect;
 const sinon = require('sinon');
@@ -95,6 +95,27 @@ describe('index', function() {
 
     afterEach(function() {
       sinon.restore(router.pushState);
+    });
+
+    describe('get path', function() {
+      it('returns undefined if the route name is not found', function() {
+        expect(router.getPath('baz')).to.be.undefined;
+      });
+
+      it('returns the interpolated path', function() {
+        router.addRoute({
+          pattern: '/foo/<bar>/baz/<bam>',
+          name: 'foobar',
+          cb: 'foobarCallback'
+        });
+
+        const path = router.getPath('foobar', {
+          bar: 1,
+          bam: 2
+        });
+
+        expect(path).to.equal('/foo/1/baz/2');
+      });
     });
 
     describe('navigate by name', function() {
