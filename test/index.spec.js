@@ -1,7 +1,19 @@
 const expect = require('chai').expect;
 
 describe('index', function() {
-  it('should pass', function() {
-    expect(true).to.be.true;
+  describe('instantiation', function() {
+
+  });
+
+  describe('add route', function() {
+
+  });
+
+  describe('navigate', function() {
+
+  });
+
+  describe('start history', function() {
+
   });
 });
