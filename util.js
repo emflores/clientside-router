@@ -69,5 +69,6 @@ module.exports = {
   tokenize: tokenize,
   makePath: makePath,
   doesMatchPath: doesMatchPath,
-  find: find
+  find: find,
+  makePathArgs: makePathArgs
 };
