@@ -3,9 +3,12 @@
 /*jshint expr: true, mocha: true, esnext: true */
 
 const expect = require('chai').expect;
+const pquire = require('proxyquire').noCallThru();
 const sinon = require('sinon');
 
-const Router = require('../index.js');
+const Router = pquire('../index.js', {
+  './browser-shim': {}
+});
 
 
 describe('index', function() {
@@ -124,7 +127,7 @@ describe('index', function() {
         expect(router.pushState.called).to.be.false;
       });
 
-      it('calls this.pushState with the interpolated route path and callback', function() {
+      it('calls this.pushState with the interpolated route path', function() {
         router.addRoute({
           pattern: '/foo/<bar>/baz/<bam>',
           name: 'foobar',
@@ -136,7 +139,7 @@ describe('index', function() {
           bam: 2
         });
         expect(router.pushState.calledWith(
-          '/foo/1/baz/2', 'foobarCallback'
+          '/foo/1/baz/2'
         )).to.be.true;
       });
 
@@ -149,7 +152,7 @@ describe('index', function() {
 
         router.navigateByName('foobar');
         expect(router.pushState.calledWith(
-          '/foo//baz', 'foobarCallback'
+          '/foo//baz'
         )).to.be.true;
       });
     });
@@ -160,7 +163,7 @@ describe('index', function() {
         expect(router.pushState.called).to.be.false;
       });
 
-      it('calls this.pushState with the path and callback', function() {
+      it('calls this.pushState with the path', function() {
         router.addRoute({
           pattern: '/foo/<bar>/baz',
           name: 'foobar',
@@ -168,7 +171,7 @@ describe('index', function() {
         });
         router.navigateByPath('/foo/1/baz');
         expect(router.pushState.calledWith(
-          '/foo/1/baz', 'foobarCallback'
+          '/foo/1/baz'
         )).to.be.true;
       });
     });

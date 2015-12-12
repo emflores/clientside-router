@@ -1,6 +1,7 @@
 "use strict";
 
 var util = require('./util');
+var win = require('./browser-shim');
 
 function Router(routes) {
   this.routes = [];
@@ -20,16 +21,20 @@ Router.prototype.addRoute = function(opts) {
   });
 };
 
-Router.prototype.navigateByPath = function(path) {
-  var route = util.find(this.routes, function(route) {
+Router.prototype.getRouteByPath = function(path) {
+  return util.find(this.routes, function(route) {
     return util.doesMatchPath(route.tokens, path);
   });
+};
+
+Router.prototype.navigateByPath = function(path) {
+  var route = this.getRouteByPath(path);
 
   if (!route) {
     return;
   }
 
-  return this.pushState(path, route.cb);
+  return this.pushState(path);
 };
 
 Router.prototype.getRouteByName = function(name) {
@@ -60,22 +65,54 @@ Router.prototype.navigateByName = function(name, opts) {
   }
 
   var path = util.makePath(route.tokens, opts);
-  return this.pushState(path, route.cb);
+  return this.pushState(path);
 };
 
-Router.prototype.pushState = function(path, cb) {
-  // window.history.pushState(path);
-  // cb()
+Router.prototype.pushState = function(path) {
+  win.history.pushState({}, '', path);
 };
 
-// @TODO
-// first route is determined after history start
-// add popstate listener after first route
+Router.prototype.addListeners = function() {
+  var self = this;
+
+  win.addEventListener('popstate', function() {
+    var route = self.getRouteByPath(win.location.pathname);
+
+    if (route) {
+      route.cb();
+    }
+  });
+
+  win.document.addEventListener('click', function(e) {
+    if (!e.target ||
+        e.target.tagName.toLowerCase() !== 'a' ||
+        e.target.target ||
+        e.target.dataset.external) {
+      return;
+    }
+
+    var path = e.target.pathname;
+    var route = self.getRouteByPath(path);
+
+    if (route) {
+      e.preventDefault();
+      route.cb();
+    }
+  });
+};
+
 Router.prototype.startHistory = function() {
   if (this.historyStarted) {
     return;
   }
 
+  var route = this.getRouteByPath(win.location.pathname);
+
+  if (route) {
+    route.cb();
+  }
+
+  this.addListeners();
   this.historyStarted = true;
 };
 
