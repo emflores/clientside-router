@@ -28,6 +28,17 @@ function makePath(tokens, opts) {
   return segments.join(PATH_DELIM);
 }
 
+function makePathArgs(path, tokens) {
+  var segments = path.split(PATH_DELIM);
+
+  return tokens.reduce(function(accum, token, index) {
+    if (!token.isLiteral) {
+      accum[token.value] = segments[index];
+    }
+    return accum;
+  }, {});
+}
+
 function doesMatchPath(tokens, requestedPath) {
   var segments = requestedPath.split(PATH_DELIM);
 
