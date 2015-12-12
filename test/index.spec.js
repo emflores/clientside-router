@@ -1,3 +1,7 @@
+"use strict";
+
+/*jshint expr: true*/
+
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
@@ -81,11 +85,75 @@ describe('index', function() {
     });
   });
 
-  describe('navigate by name', function() {
+  describe('navigation', function() {
+    let router = null;
 
+    beforeEach(function() {
+      router = new Router();
+      sinon.stub(router, 'pushState');
+    });
+
+    afterEach(function() {
+      sinon.restore(router.pushState);
+    });
+
+    describe('navigate by name', function() {
+      it('does not call this.pushState if a matching route is not found', function() {
+        router.navigateByName('foo');
+        expect(router.pushState.called).to.be.false;
+      });
+
+      it('calls this.pushState with the interpolated route path and callback', function() {
+        router.addRoute({
+          pattern: '/foo/<bar>/baz/<bam>',
+          name: 'foobar',
+          cb: 'foobarCallback'
+        });
+
+        router.navigateByName('foobar', {
+          bar: 1,
+          bam: 2
+        });
+        expect(router.pushState.calledWith(
+          '/foo/1/baz/2', 'foobarCallback'
+        )).to.be.true;
+      });
+
+      it('interpolates undefined for a segment if a matching option is not passed', function() {
+        router.addRoute({
+          pattern: '/foo/<bar>/baz',
+          name: 'foobar',
+          cb: 'foobarCallback'
+        });
+
+        router.navigateByName('foobar');
+        expect(router.pushState.calledWith(
+          '/foo//baz', 'foobarCallback'
+        )).to.be.true;
+      });
+    });
+
+    describe('navigate by path', function() {
+      it('does not call this.pushState if a matching route is not found', function() {
+        router.navigateByPath('/foo');
+        expect(router.pushState.called).to.be.false;
+      });
+
+      it('calls this.pushState with the path and callback', function() {
+        router.addRoute({
+          pattern: '/foo/<bar>/baz',
+          name: 'foobar',
+          cb: 'foobarCallback'
+        });
+        router.navigateByPath('/foo/1/baz');
+        expect(router.pushState.calledWith(
+          '/foo/1/baz', 'foobarCallback'
+        )).to.be.true;
+      });
+    });
   });
 
-  describe('navigate by path', function() {
+  describe('push state', function() {
 
   });
 

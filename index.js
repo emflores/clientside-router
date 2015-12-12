@@ -1,3 +1,5 @@
+"use strict";
+
 const util = require('./util');
 
 function Router(routes) {
@@ -19,7 +21,7 @@ Router.prototype.addRoute = function(opts) {
 };
 
 Router.prototype.navigateByPath = function(path) {
-  const route = this.routes.find(function(route) {
+  const route = util.find(this.routes, function(route) {
     return util.doesMatchPath(route.tokens, path);
   });
 
@@ -33,7 +35,7 @@ Router.prototype.navigateByPath = function(path) {
 Router.prototype.navigateByName = function(name, opts) {
   opts = opts || {};
 
-  const route = this.routes.find(function() {
+  const route = util.find(this.routes, function(route) {
     return route.name === name;
   });
 

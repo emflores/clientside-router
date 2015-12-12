@@ -22,7 +22,7 @@ function makePath(tokens, opts) {
     if (token.isLiteral) {
       return token.value;
     }
-    return opts[value];
+    return opts[token.value];
   });
 
   return segments.join(PATH_DELIM);
@@ -39,8 +39,17 @@ function doesMatchPath(tokens, requestedPath) {
     if (!token.isLiteral) {
       return true;
     }
-    return token.value === segment[index];
+    return token.value === segments[index];
   });
+}
+
+function find(arr, iteratee) {
+  for (var i = 0; i < arr.length; ++i) {
+    if (iteratee(arr[i])) {
+      return arr[i];
+    }
+  }
+  return undefined;
 }
 
 
@@ -48,5 +57,6 @@ module.exports = {
   parse: parse,
   tokenize: tokenize,
   makePath: makePath,
-  doesMatchPath: doesMatchPath
+  doesMatchPath: doesMatchPath,
+  find: find
 };
