@@ -144,7 +144,7 @@ describe('index', function() {
         expect(path).to.equal('/foo/1/baz/2');
       });
 
-      it('returns includes optional segments', function() {
+      it('includes optional segments', function() {
         router.addRoute({
           pattern: '/foo/bar?/<baz>',
           name: 'foobar',
