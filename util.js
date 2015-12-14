@@ -70,7 +70,7 @@ function allOptional(tokens) {
 
 function doesMatchPath(tokens, requestedPath) {
   var segments = requestedPath.split(PATH_DELIM);
-  var loopCount = Math.max(tokens.length, segments.length) - 1;
+  var loopCount = Math.max(tokens.length, segments.length);
   var lastTokenWasWildcard = false;
   var indexWithOffset = 0;
   var optionalOffset = 0;
@@ -86,14 +86,18 @@ function doesMatchPath(tokens, requestedPath) {
       token = tokens[indexWithOffset];
     }
 
-    var atLastToken = indexWithOffset + 1 === tokens.length;
-    var atLastSegment = index + 1 == segments.length;
+    var hasMoreTokens = indexWithOffset + 1 < tokens.length;
+    var hasMoreSegments = index + 1 < segments.length;
 
-    if (atLastToken && !atLastSegment && !token.isWildcard) {
+    if (!hasMoreTokens && !hasMoreSegments) {
+      return true;
+    }
+
+    if (!hasMoreTokens && hasMoreSegments && !token.isWildcard) {
       return false;
     }
 
-    if (atLastSegment && !atLastToken && !allOptional(tokens.slice(indexWithOffset + 1))) {
+    if (!hasMoreSegments && hasMoreTokens && !allOptional(tokens.slice(indexWithOffset + 1))) {
       return false;
     }
 

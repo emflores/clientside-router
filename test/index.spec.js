@@ -6,22 +6,32 @@ const expect = require('chai').expect;
 const pquire = require('proxyquire').noCallThru();
 const sinon = require('sinon');
 
+const pushStateSpy = sinon.spy();
+
 const Router = pquire('../index.js', {
-  './browser-shim': {}
+  './browser-shim': {
+    history: {
+      pushState: pushStateSpy
+    }
+  }
 });
 
 
 describe('index', function() {
+  let router = null;
+  beforeEach(function() {
+    router = new Router();
+    pushStateSpy.reset();
+  });
+
   describe('instantiation', function() {
     it('sets this.routes', function() {
-      const router = new Router();
       expect(router.routes).to.deep.equal([]);
     });
   });
 
   describe('add routes', function() {
     it('calls this.addRoute for each route', function() {
-      const router = new Router();
       sinon.stub(router, 'addRoute');
       router.addRoutes([1, 2]);
       expect(router.addRoute.calledTwice).to.be.true;
@@ -33,7 +43,6 @@ describe('index', function() {
 
   describe('add route', function() {
     it('stores the routes name, callback, and segment tokens', function() {
-      const router = new Router();
       router.addRoute({
         pattern: '/foo/<bar>/?/bam?/*',
         name: 'foobar',
@@ -87,7 +96,6 @@ describe('index', function() {
     });
 
     it('stores routes in the order that they are added', function() {
-      const router = new Router();
       router.addRoutes([
         {
           pattern: '/mic/<hael>',
@@ -113,10 +121,7 @@ describe('index', function() {
   });
 
   describe('navigation', function() {
-    let router = null;
-
     beforeEach(function() {
-      router = new Router();
       sinon.stub(router, 'pushState');
     });
 
@@ -308,7 +313,16 @@ describe('index', function() {
   });
 
   describe('push state', function() {
-
+    it('calls window.history.pushState', function() {
+      router.pushState(
+        '/foo',
+        {
+          cb: function() {},
+          tokens: []
+        }
+      );
+      expect(pushStateSpy.called).to.be.true;
+    });
   });
 
   describe('start history', function() {
