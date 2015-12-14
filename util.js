@@ -1,14 +1,29 @@
 var PATH_DELIM = '/';
 var INTERPOLATION_PATTERN = /<(.+)>/;
+var WILDCARD = '*';
+var OPTIONAL = '?';
 
 
 function parse(segment) {
   var matches = segment.match(INTERPOLATION_PATTERN);
   var isLiteral = !matches;
+  var isOptional = isLiteral && segment.slice(-1) === OPTIONAL;
+  var isWildcard = isLiteral && segment === WILDCARD;
+  var value = null;
+
+  if (isOptional) {
+    value = segment.slice(0, -1);
+  } else if (isLiteral) {
+    value = segment;
+  } else {
+    value = matches[1];
+  }
 
   return {
     isLiteral: isLiteral,
-    value: isLiteral ? segment : matches[1]
+    value: value,
+    isWildcard: isWildcard,
+    isOptional: isOptional
   };
 }
 
@@ -18,7 +33,13 @@ function tokenize(path) {
 }
 
 function makePath(tokens, opts) {
+  var hasSpecialField = false;
+
   var segments = tokens.map(function(token) {
+    if (token.isWildcard) {
+      return;
+    }
+
     if (token.isLiteral) {
       return token.value;
     }
@@ -41,16 +62,35 @@ function makePathArgs(path, tokens) {
 
 function doesMatchPath(tokens, requestedPath) {
   var segments = requestedPath.split(PATH_DELIM);
+  var lastTokenWasWildcard = false;
+  var optionalOffset = 0;
 
-  if (tokens.length !== segments.length) {
-    return false;
-  }
+  return segments.every(function(segment, index, arr) {
+    var token = tokens[index + optionalOffset];
 
-  return tokens.every(function(token, index) {
+    if (token && token.value !== segment && token.isOptional) {
+      ++optionalOffset;
+      token = tokens[index + optionalOffset];
+    }
+
+    if (!token && lastTokenWasWildcard) {
+      return true;
+    }
+
+    if (!token) {
+      return false;
+    }
+
+    if (token.isWildcard) {
+      lastTokenWasWildcard = true;
+      return true;
+    }
+
     if (!token.isLiteral) {
       return true;
     }
-    return token.value === segments[index];
+
+    return token.value === segment;
   });
 }
 
@@ -60,7 +100,7 @@ function find(arr, iteratee) {
       return arr[i];
     }
   }
-  return undefined;
+  return;
 }
 
 

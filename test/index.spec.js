@@ -35,7 +35,7 @@ describe('index', function() {
     it('stores the routes name, callback, and segment tokens', function() {
       const router = new Router();
       router.addRoute({
-        pattern: '/foo/<bar>',
+        pattern: '/foo/<bar>/?/bam?/*',
         name: 'foobar',
         cb: 'foobarCallback'
       });
@@ -47,15 +47,39 @@ describe('index', function() {
           tokens: [
             {
               isLiteral: true,
+              isWildcard: false,
+              isOptional: false,
               value: ''
             },
             {
               isLiteral: true,
+              isWildcard: false,
+              isOptional: false,
               value: 'foo'
             },
             {
               isLiteral: false,
+              isWildcard: false,
+              isOptional: false,
               value: 'bar'
+            },
+            {
+              isLiteral: true,
+              isWildcard: false,
+              isOptional: true,
+              value: ''
+            },
+            {
+              isLiteral: true,
+              isWildcard: false,
+              isOptional: true,
+              value: 'bam'
+            },
+            {
+              isLiteral: true,
+              isWildcard: true,
+              isOptional: false,
+              value: '*'
             }
           ]
         }
@@ -119,6 +143,34 @@ describe('index', function() {
 
         expect(path).to.equal('/foo/1/baz/2');
       });
+
+      it('includes optional segments', function() {
+        router.addRoute({
+          pattern: '/foo/bar?/<baz>',
+          name: 'foobar',
+          cb: 'foobarCallback'
+        });
+
+        const path = router.getPath('foobar', {
+          baz: 2
+        });
+
+        expect(path).to.equal('/foo/bar/2');
+      });
+
+      it('returns everything up to the wildcard symbol (if present)', function() {
+        router.addRoute({
+          pattern: '/foo/bar/*',
+          name: 'foobar',
+          cb: 'foobarCallback'
+        });
+
+        const path = router.getPath('foobar', {
+          baz: 2
+        });
+
+        expect(path).to.equal('/foo/bar/');
+      });
     });
 
     describe('navigate by name', function() {
@@ -163,7 +215,7 @@ describe('index', function() {
         expect(router.pushState.called).to.be.false;
       });
 
-      it('calls this.pushState with the path', function() {
+      it('calls this.pushState with the matching path', function() {
         router.addRoute({
           pattern: '/foo/<bar>/baz',
           name: 'foobar',
@@ -173,6 +225,66 @@ describe('index', function() {
         expect(router.pushState.calledWith(
           '/foo/1/baz'
         )).to.be.true;
+      });
+
+      it('respects wildcard routes', function() {
+        router.addRoute({
+          pattern: '/foo/<bar>/*',
+          name: 'foobar',
+          cb: 'foobarCallback'
+        });
+
+        router.navigateByPath('/foo/1');
+        router.navigateByPath('/foo/1/');
+        router.navigateByPath('/foo/1/baz');
+
+        expect(router.pushState.getCall(0).calledWith(
+          '/foo/1'
+        )).to.be.true;
+        expect(router.pushState.getCall(1).calledWith(
+          '/foo/1/'
+        )).to.be.true;
+        expect(router.pushState.getCall(2).calledWith(
+          '/foo/1/baz'
+        )).to.be.true;
+      });
+
+      describe('optional segments', function() {
+        it('skips the optional segment if the segment of the target path does not match', function() {
+          router.addRoute({
+            pattern: '/foo/bat?/baz',
+            name: 'foobar',
+            cb: 'foobarCallback'
+          });
+
+          router.navigateByPath('/foo/bat/baz');
+          router.navigateByPath('/foo/baz');
+
+          expect(router.pushState.getCall(0).calledWith(
+            '/foo/bat/baz'
+          )).to.be.true;
+          expect(router.pushState.getCall(1).calledWith(
+            '/foo/baz'
+          )).to.be.true;
+        });
+
+        it('respects an "optional-only" segment', function() {
+          router.addRoute({
+            pattern: '/foo/?',
+            name: 'foobar',
+            cb: 'foobarCallback'
+          });
+
+          router.navigateByPath('/foo/');
+          router.navigateByPath('/foo');
+
+          expect(router.pushState.getCall(0).calledWith(
+            '/foo/'
+          )).to.be.true;
+          expect(router.pushState.getCall(1).calledWith(
+            '/foo'
+          )).to.be.true;
+        });
       });
     });
   });
