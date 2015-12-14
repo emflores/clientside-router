@@ -1,3 +1,5 @@
+"use strict";
+
 var PATH_DELIM = '/';
 var INTERPOLATION_PATTERN = /<(.+)>/;
 var WILDCARD = '*';
@@ -60,17 +62,39 @@ function makePathArgs(path, tokens) {
   }, {});
 }
 
+function allOptional(tokens) {
+  return tokens.every(function(token) {
+    return token.isOptional;
+  });
+}
+
 function doesMatchPath(tokens, requestedPath) {
   var segments = requestedPath.split(PATH_DELIM);
+  var loopCount = Math.max(tokens.length, segments.length) - 1;
   var lastTokenWasWildcard = false;
+  var indexWithOffset = 0;
   var optionalOffset = 0;
 
-  return segments.every(function(segment, index, arr) {
-    var token = tokens[index + optionalOffset];
+  return everyForN(loopCount, function(index) {
+    indexWithOffset = index + optionalOffset;
+    var segment = segments[index];
+    var token = tokens[indexWithOffset];
 
     if (token && token.value !== segment && token.isOptional) {
       ++optionalOffset;
-      token = tokens[index + optionalOffset];
+      indexWithOffset = index + optionalOffset;
+      token = tokens[indexWithOffset];
+    }
+
+    var atLastToken = indexWithOffset + 1 === tokens.length;
+    var atLastSegment = index + 1 == segments.length;
+
+    if (atLastToken && !atLastSegment && !token.isWildcard) {
+      return false;
+    }
+
+    if (atLastSegment && !atLastToken && !allOptional(tokens.slice(indexWithOffset + 1))) {
+      return false;
     }
 
     if (!token && lastTokenWasWildcard) {
@@ -101,6 +125,15 @@ function find(arr, iteratee) {
     }
   }
   return;
+}
+
+function everyForN(times, iteratee) {
+  for (var i = 0; i < times; ++i) {
+    if (!iteratee(i)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 

@@ -210,9 +210,31 @@ describe('index', function() {
     });
 
     describe('navigate by path', function() {
-      it('does not call this.pushState if a matching route is not found', function() {
-        router.navigateByPath('/foo');
-        expect(router.pushState.called).to.be.false;
+      describe('sad path', function() {
+        it('does not call this.pushState if a matching route is not found', function() {
+          router.navigateByPath('/foo');
+          expect(router.pushState.called).to.be.false;
+        });
+
+        it('does not call this.pushState if the path partially matches the pattern', function() {
+          router.addRoute({
+            pattern: '/foo/bar/baz',
+            name: 'foobar',
+            cb: 'foobarCallback'
+          });
+          router.navigateByPath('/foo/bar');
+          expect(router.pushState.called).to.be.false;
+        });
+
+        it('does not call this.pushState if the pattern partially matches the path', function() {
+          router.addRoute({
+            pattern: '/foo/bar',
+            name: 'foobar',
+            cb: 'foobarCallback'
+          });
+          router.navigateByPath('/foo/bar/baz');
+          expect(router.pushState.called).to.be.false;
+        });
       });
 
       it('calls this.pushState with the matching path', function() {
@@ -234,17 +256,13 @@ describe('index', function() {
           cb: 'foobarCallback'
         });
 
-        router.navigateByPath('/foo/1');
         router.navigateByPath('/foo/1/');
         router.navigateByPath('/foo/1/baz');
 
         expect(router.pushState.getCall(0).calledWith(
-          '/foo/1'
-        )).to.be.true;
-        expect(router.pushState.getCall(1).calledWith(
           '/foo/1/'
         )).to.be.true;
-        expect(router.pushState.getCall(2).calledWith(
+        expect(router.pushState.getCall(1).calledWith(
           '/foo/1/baz'
         )).to.be.true;
       });
